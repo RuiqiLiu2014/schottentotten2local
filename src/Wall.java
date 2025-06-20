@@ -77,7 +77,7 @@ public class Wall {
 
     public boolean declareControl(List<Card> remainingCards) {
         if (attackerCards.size() == length) {
-            int defenderStrength = getStrongestDefenderFormationStrength(remainingCards);
+            int defenderStrength = getStrongestDefenderFormationStrength(defenderCards, remainingCards, length, Integer.MIN_VALUE);
             int attackerStrength = getStrength(attackerCards);
             if (attackerFinishedFirst) {
                 return attackerStrength >= defenderStrength;
@@ -88,11 +88,7 @@ public class Wall {
         return false;
     }
 
-    public int getStrongestDefenderFormationStrength(List<Card> remainingCards) {
-        return getStrongestPossibleFormationStrength(defenderCards, remainingCards, length, Integer.MIN_VALUE);
-    }
-
-    private int getStrongestPossibleFormationStrength(List<Card> currentFormation, List<Card> remainingCards, int length, int maxStrength) {
+    private int getStrongestDefenderFormationStrength(List<Card> currentFormation, List<Card> remainingCards, int length, int maxStrength) {
         if (currentFormation.size() == length) {
             return Math.max(getStrength(currentFormation), maxStrength);
         }
@@ -100,7 +96,7 @@ public class Wall {
         for (int i = 0; i < remainingCards.size(); i++) {
             Card card = remainingCards.remove(i);
             currentFormation.add(card);
-            maxStrength = Math.max(getStrongestPossibleFormationStrength(currentFormation, remainingCards, length, maxStrength), maxStrength);
+            maxStrength = Math.max(getStrongestDefenderFormationStrength(currentFormation, remainingCards, length, maxStrength), maxStrength);
             currentFormation.remove(card);
             remainingCards.add(i, card);
         }
@@ -131,7 +127,7 @@ public class Wall {
             if (otherSide.contains(temp)) {
                 playingSide.remove(card);
                 otherSide.remove(temp);
-                return Arrays.asList(Main.colors).indexOf(card.getColor()) + 1;
+                return Constants.colors.indexOf(card.getColor()) + 1;
             }
         }
         playingSide.add(card);
@@ -142,41 +138,37 @@ public class Wall {
     }
 
     public String toString(int wallNum) {
-        String result = "";
+        StringBuilder result = new StringBuilder();
         for (int i = 3; i >= 0; i--) {
             if (i >= attackerCards.size()) {
-                result += "        ";
+                result.append("        ");
             } else {
-                result += attackerCards.get(i).toString() + " ";
+                result.append(attackerCards.get(i).toString()).append(" ");
             }
         }
         if (broken) {
-            result += "  " + wallNum + "   ";
+            result.append("  ").append(wallNum).append("   ");
         } else if (damaged) {
-            result += "| " + wallNum + " | ";
+            result.append("| ").append(wallNum).append(" | ");
         } else {
-            result += "||" + wallNum + "|| ";
+            result.append("||").append(wallNum).append("|| ");
         }
-        for (int i = 0; i < 4 - length; i++) {
-            result += "  ";
-        }
+        result.append("  ".repeat(4 - length));
         for (int i = 0; i < length; i++) {
-            result += "[" + pattern + "] ";
+            result.append("[").append(pattern).append("] ");
         }
-        for (int i = 0; i < 4 - length; i++) {
-            result += "  ";
-        }
+        result.append("  ".repeat(4 - length));
         if (broken) {
-            result += "  " + wallNum + "  ";
+            result.append("  ").append(wallNum).append("  ");
         } else if (damaged) {
-            result += "| " + wallNum + " |";
+            result.append("| ").append(wallNum).append(" |");
         } else {
-            result += "||" + wallNum + "||";
+            result.append("||").append(wallNum).append("||");
         }
         for (Card card : defenderCards) {
-            result += " " + card.toString();
+            result.append(" ").append(card.toString());
         }
-        return result;
+        return result.toString();
     }
 
     public boolean contains(Card card) {
@@ -195,20 +187,20 @@ public class Wall {
         int type = getPatternType(formation);
 
         switch (pattern) {
-            case "+" -> {
+            case Constants.PLUS -> {
                 return sum;
             }
-            case "-" -> {
+            case Constants.MINUS -> {
                 return -sum;
             }
-            case Main.COLOR -> {
+            case Constants.COLOR -> {
                 if (type == 4 || type == 2) {
                     return sum;
                 } else {
                     return type * 100 + sum;
                 }
             }
-            case Main.RUN -> {
+            case Constants.RUN -> {
                 if (type == 4 || type == 3) {
                     return sum;
                 } else {

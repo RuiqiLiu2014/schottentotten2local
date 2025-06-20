@@ -51,7 +51,7 @@ public class Card implements Comparable<Card> {
         if (name.length() != 7) {
             return false;
         }
-        if (!Arrays.asList(Main.colors).contains(name.substring(0, 5))) {
+        if (!Constants.colors.contains(name.substring(0, 5))) {
             return false;
         }
         return Integer.parseInt(name.substring(5)) <= 11 && Integer.parseInt(name.substring(5)) >= 0;
