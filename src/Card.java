@@ -1,4 +1,4 @@
-import java.util.*;
+import java.util.Arrays;
 
 public class Card implements Comparable<Card> {
     private final int value;
@@ -15,7 +15,11 @@ public class Card implements Comparable<Card> {
     }
 
     public String toString() {
-        return color + value;
+        if (value <= 9) {
+            return color + "0" + value;
+        } else {
+            return color + value;
+        }
     }
 
     public int getValue() {
@@ -41,5 +45,15 @@ public class Card implements Comparable<Card> {
         } else {
             return false;
         }
+    }
+
+    public static boolean isValid(String name) {
+        if (name.length() != 7) {
+            return false;
+        }
+        if (!Arrays.asList(Main.colors).contains(name.substring(0, 5))) {
+            return false;
+        }
+        return Integer.parseInt(name.substring(5)) <= 11 && Integer.parseInt(name.substring(5)) >= 0;
     }
 }

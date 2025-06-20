@@ -34,44 +34,39 @@ public class Main {
             attackerTurn(board, deck, discard, attackerHand);
             won = won(board, deck);
             if (won != 0) {
+                displayBoard(board, deck, discard);
                 displayWinner(won);
                 break;
             }
-
             defenderTurn(board, deck, discard, defenderHand);
-            won = won(board, deck);
-            if (won != 0) {
-                displayWinner(won);
-                break;
-            }
         }
     }
 
     public static void attackerTurn(Wall[] board, Stack<Card> deck, Set<Card> discard, Set<Card> hand) {
-        displayBoard(board, discard);
+        displayBoard(board, deck, discard);
         displayHand(hand);
-        boolean played = playCard(board, discard, hand, true);
+        boolean played = playCard(board, deck, discard, hand, true);
         while (!played) {
             System.out.println("ur bad");
-            played = playCard(board, discard, hand, true);
+            played = playCard(board, deck, discard, hand, true);
         }
         declareControl(board, discard);
-        draw(hand, deck);
+        if (!deck.isEmpty()) {
+            hand.add(deck.pop());
+        }
     }
 
     public static void defenderTurn(Wall[] board, Stack<Card> deck, Set<Card> discard, Set<Card> hand) {
-        displayBoard(board, discard);
+        displayBoard(board, deck, discard);
         displayHand(hand);
-        boolean played = playCard(board, discard, hand, false);
+        boolean played = playCard(board, deck, discard, hand, false);
         while (!played) {
             System.out.println("ur bad");
-            played = playCard(board, discard, hand, false);
+            played = playCard(board, deck, discard, hand, false);
         }
-        draw(hand, deck);
-    }
-
-    public static void draw(Set<Card> hand, Stack<Card> deck) {
-        hand.add(deck.pop());
+        if (!deck.isEmpty()) {
+            hand.add(deck.pop());
+        }
     }
 
     public static void retreat(Wall[] board, Set<Card> discard) {
@@ -95,11 +90,81 @@ public class Main {
             System.out.print("Which wall (1-7, 0 to cancel)? ");
             int wall = Integer.parseInt(scan.nextLine());
             if (wall != 0) {
-                discard.add(board[wall - 1].cauldron());
-                cauldronCount--;
-                System.out.println(cauldronCount + " cauldrons remaining");
+                Card card = board[wall - 1].cauldron();
+                if (card != null) {
+                    discard.add(card);
+                    cauldronCount--;
+                    System.out.println(cauldronCount + " cauldrons remaining");
+                }
             }
         }
+    }
+
+    public static boolean playCard(Wall[] board, Stack<Card> deck, Set<Card> discard, Set<Card> hand, boolean attacker) {
+        Scanner scan = new Scanner(System.in);
+        System.out.print("Which card");
+        if (attacker) {
+            System.out.print(" (r for retreat)? ");
+        } else if (cauldronCount > 0) {
+            System.out.print(" (c for cauldron)? ");
+        } else {
+            System.out.print("? ");
+        }
+        String c = scan.nextLine();
+        boolean used = false;
+        if (attacker && c.equalsIgnoreCase("r")) {
+            retreat(board, discard);
+            used = true;
+            displayBoard(board, deck, discard);
+            displayHand(hand);
+        }
+        if (!attacker && c.equalsIgnoreCase("c")) {
+            if (cauldronCount > 0) {
+                cauldron(board, discard);
+                used = true;
+                displayBoard(board, deck, discard);
+                displayHand(hand);
+            } else {
+                System.out.println("you have no more cauldrons");
+                System.out.println("cry about it");
+                return false;
+            }
+        }
+
+        if (used) {
+            System.out.print("Which card? ");
+            c = scan.nextLine();
+        }
+        if (!Card.isValid(c)) {
+            System.out.println("invalid move");
+            System.out.println("your opponent smacks you");
+            return false;
+        }
+        Card card = new Card(c);
+
+        if (!hand.remove(card)) {
+            System.out.println("you don't have that card");
+            System.out.println("you clearly need glasses");
+            return false;
+        }
+
+        System.out.print("Which wall? ");
+        int wall = Integer.parseInt(scan.nextLine());
+        if (wall < 1 || wall > 7) {
+            System.out.println("that's not a wall");
+            System.out.println("stop sending your troops to narnia");
+            hand.add(card);
+            return false;
+        }
+        int i = board[wall - 1].playCard(card, attacker);
+        if (i == -1) {
+            hand.add(card);
+            return false;
+        } else if (i != 0) {
+            discard.add(new Card(colors[i - 1], 0));
+            discard.add(new Card(colors[i - 1], 11));
+        }
+        return true;
     }
 
     public static void declareControl(Wall[] board, Set<Card> discard) {
@@ -107,7 +172,7 @@ public class Main {
         for (String color : colors) {
             for (int n = 0; n < 12; n++) {
                 Card card = new Card(color, n);
-                if (!discard.contains(card) || !onBoard(board, card)) {
+                if (!discard.contains(card) && !onBoard(board, card)) {
                     remainingCards.add(card);
                 }
             }
@@ -118,58 +183,6 @@ public class Main {
                 discard.addAll(wall.damage());
             }
         }
-    }
-
-    public static boolean onBoard(Wall[] board, Card card) {
-        for (Wall wall : board) {
-            if (wall.containsCard(card)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    public static boolean playCard(Wall[] board, Set<Card> discard, Set<Card> hand, boolean attacker) {
-        Scanner scan = new Scanner(System.in);
-        System.out.print("Which card ");
-        if (attacker) {
-            System.out.print("(r for retreat)? ");
-        } else {
-            System.out.print("(c for cauldron)? ");
-        }
-        String c = scan.nextLine();
-        boolean used = false;
-        if (attacker && c.equalsIgnoreCase("r")) {
-            retreat(board, discard);
-            used = true;
-        }
-        if (!attacker && c.equalsIgnoreCase("c")) {
-            cauldron(board, discard);
-            used = true;
-        }
-
-        if (used) {
-            System.out.print("Which card? ");
-        }
-        Card card = new Card(c);
-        if (!hand.remove(card)) {
-            System.out.println("You don't have that card");
-            return false;
-        }
-
-        System.out.print("Which wall (1-7)? ");
-        int wall = Integer.parseInt(scan.nextLine());
-        int i = board[wall - 1].playCard(card, attacker);
-        if (i == -1) {
-            return false;
-        } else if (i != 0) {
-            discard.add(new Card(colors[i - 1], 0));
-            discard.add(new Card(colors[i - 1], 11));
-        } else {
-            hand.remove(card);
-            discard.add(card);
-        }
-        return true;
     }
 
     public static int won(Wall[] board, Stack<Card> deck) {
@@ -187,22 +200,17 @@ public class Main {
         if (deck.isEmpty()) {
             return dWin;
         }
-        return 0;
-    }
-
-
-    public static void displayBoard(Wall[] board, Set<Card> discard) {
-        System.out.println("       Attacker                                       Defender");
+        boolean defenderSideFull = true;
         for (Wall wall : board) {
-            System.out.println(wall.toString());
+            if (!wall.defenderSideFull()) {
+                defenderSideFull = false;
+                break;
+            }
         }
-
-        System.out.println("----------------------------------------------------------------------");
-        for (Card card : discard) {
-            System.out.print(card.toString() + " ");
+        if (defenderSideFull) {
+            return dWin;
         }
-        System.out.println();
-        System.out.println("----------------------------------------------------------------------");
+        return 0;
     }
 
     public static void shuffleAndDeal(Stack<Card> deck, Set<Card> attackerHand, Set<Card> defenderHand) {
@@ -211,6 +219,28 @@ public class Main {
             attackerHand.add(deck.pop());
             defenderHand.add(deck.pop());
         }
+    }
+
+    public static void displayBoard(Wall[] board, Stack<Card> deck, Set<Card> discard) {
+        System.out.print("           ATTACKER                       DECK:");
+        if (deck.size() < 10) {
+            System.out.print("0");
+        }
+        System.out.print(deck.size() + "                       DEFENDER ");
+        for (int i = 0; i < cauldronCount; i++) {
+            System.out.print("\uD83E\uDDC9");
+        }
+        System.out.println();
+        for (int i = 0; i < board.length; i++) {
+            System.out.println(board[i].toString(i + 1));
+        }
+
+        System.out.println("------------------------------------------DISCARD------------------------------------------");
+        for (Card card : discard) {
+            System.out.print(card.toString() + " ");
+        }
+        System.out.println();
+        System.out.println("-------------------------------------------------------------------------------------------");
     }
 
     public static void displayHand(Set<Card> hand) {
@@ -230,87 +260,12 @@ public class Main {
         }
     }
 
-    public static int getStrength(List<Card> formation, String pattern) {
-        int sum = 0;
-        for (Card card : formation) {
-            sum += card.getValue();
-        }
-        int type = getPatternType(formation);
-
-        switch (pattern) {
-            case "+" -> {
-                return sum;
-            }
-            case "-" -> {
-                return -sum;
-            }
-            case COLOR -> {
-                if (type == 4 || type == 2) {
-                    return sum;
-                } else {
-                    return type * 100 + sum;
-                }
-            }
-            case RUN -> {
-                if (type == 4 || type == 3) {
-                    return sum;
-                } else {
-                    return type * 100 + sum;
-                }
-            }
-            default -> {
-                return type * 100 + sum;
+    public static boolean onBoard(Wall[] board, Card card) {
+        for (Wall wall : board) {
+            if (wall.contains(card)) {
+                return true;
             }
         }
-    }
-
-    // 5 - color run
-    // 4 - same strength
-    // 3 - color
-    // 2 - run
-    // 1 - sum
-    public static int getPatternType(List<Card> formation) {
-        Set<String> colors = new TreeSet<>();
-        List<Integer> values = new ArrayList<>();
-        for (Card card : formation) {
-            colors.add(card.getColor());
-            values.add(card.getValue());
-        }
-        Collections.sort(values);
-
-        boolean allSame = true;
-        int first = values.getFirst();
-        for (int i = 1; i < values.size(); i++) {
-            if (values.get(i) != first) {
-                allSame = false;
-                break;
-            }
-        }
-        if (allSame) {
-            return 4;
-        }
-
-        Set<Integer> diffs = new TreeSet<>();
-        for (int i = 0; i < formation.size() - 1; i++) {
-            diffs.add(values.get(i + 1) - values.get(i));
-        }
-
-        if (colors.size() == 1) {
-            if (diffs.size() == 1 && diffs.contains(1)) {
-                return 5;
-            } else {
-                return 3;
-            }
-        } else {
-            if (diffs.size() == 1 && diffs.contains(1)) {
-                return 2;
-            }
-        }
-
-        return 1;
-    }
-
-    public String[] colors() {
-        return colors;
+        return false;
     }
 }
