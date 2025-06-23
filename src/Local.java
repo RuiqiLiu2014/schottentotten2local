@@ -1,4 +1,4 @@
-public class Main {
+public class Local {
     public static void main(String[] args) {
         Board board = Board.getInstance();
         Player attacker = new Attacker();
