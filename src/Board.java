@@ -1,12 +1,21 @@
+import java.util.ArrayList;
+import java.util.List;
+
 public class Board {
     private static Board instance;
     private final Wall[] board;
+    private Deck deck;
+    private Discard discard;
+    private int cauldronCount;
 
     private Board() {
         board = new Wall[Constants.numWalls];
         for (int i = 0; i < Constants.numWalls; i++) {
-            board[i] = new Wall(Constants.wallLengths[i], Constants.damagedWallLengths[i], Constants.wallPatterns[i], Constants.damagedWallPatterns[i]);
+            board[i] = new Wall(Constants.wallLengths[i], Constants.damagedWallLengths[i], Constants.wallPatterns[i], Constants.damagedWallPatterns[i], i + 1);
         }
+        deck = Deck.getInstance();
+        discard = Discard.getInstance();
+        cauldronCount = Constants.numCauldrons;
     }
 
     public static Board getInstance() {
@@ -17,21 +26,119 @@ public class Board {
     }
 
     public void display() {
-        System.out.print("           ATTACKER                       DECK:");
+        System.out.print("       ATTACKER               DECK:");
         if (deck.size() < 10) {
             System.out.print("0");
         }
-        System.out.print(deck.size() + "                       DEFENDER ");
+        System.out.print(deck.size() + "                DEFENDER ");
         for (int i = 0; i < cauldronCount; i++) {
-            System.out.print(Constants.CAULDRON);
+            System.out.print(Symbols.CAULDRON);
         }
         System.out.println();
-        for (int i = 0; i < board.length; i++) {
-            System.out.println(board[i].toString(i + 1));
+        for (Wall wall : board) {
+            wall.display();
         }
 
-        System.out.println("------------------------------------------DISCARD------------------------------------------");
+        System.out.println("------------------------------DISCARD------------------------------");
         discard.display();
-        System.out.println("-------------------------------------------------------------------------------------------");
+        System.out.println("-------------------------------------------------------------------");
+    }
+
+    public void setup(Player attacker, Player defender) {
+        deck.shuffle();
+        for (int i = 0; i < Constants.handSize; i++) {
+            attacker.draw();
+            defender.draw();
+        }
+    }
+
+    public boolean playCard(Card card, int wall, boolean attacker) {
+        int i = board[wall - 1].playCard(card, attacker);
+        if (i == -1) {
+            return false;
+        } else if (i != 0) {
+            discard.add(new Card(Constants.colors.get(i - 1), 0));
+            discard.add(new Card(Constants.colors.get(i - 1), 11));
+        }
+        return true;
+    }
+
+    public void retreat(int wall) {
+        discard.addAll(board[wall - 1].retreat());
+        display();
+    }
+
+    public boolean cauldron(int wall) {
+        Card card = board[wall - 1].cauldron();
+        if (card != null) {
+            discard.add(card);
+            cauldronCount--;
+            display();
+            System.out.print(cauldronCount + " cauldron");
+            if (cauldronCount != 1) {
+                System.out.print("s");
+            }
+            System.out.println(" remaining");
+            return true;
+        }
+        return false;
+    }
+
+    public void declareControl() {
+        List<Card> remainingCards = new ArrayList<>();
+        for (Card card : Constants.allCards()) {
+            if (!discard.contains(card) && !onBoard(card)) {
+                remainingCards.add(card);
+            }
+        }
+
+        for (Wall wall : board) {
+            if (wall.declareControl(remainingCards)) {
+                discard.addAll(wall.damage());
+            }
+        }
+    }
+
+    public boolean onBoard(Card card) {
+        for (Wall wall : board) {
+            if (wall.contains(card)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public int won() {
+        int numDamaged = 0;
+        for (Wall wall : board) {
+            if (wall.isBroken()) {
+                return Constants.attackerWins;
+            } else if (wall.isDamaged()) {
+                numDamaged++;
+            }
+        }
+        if (numDamaged >= 4) {
+            return Constants.attackerWins;
+        }
+        if (deck.isEmpty()) {
+            return Constants.defenderWins;
+        }
+        if (defenderSideFull()) {
+            return Constants.defenderWins;
+        }
+        return Constants.noWinner;
+    }
+
+    private boolean defenderSideFull() {
+        for (Wall wall : board) {
+            if (wall.defenderHasSpace()) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    public int getCauldronCount() {
+        return cauldronCount;
     }
 }

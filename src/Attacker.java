@@ -17,7 +17,7 @@ public class Attacker extends Player {
             return false;
         }
 
-        if (Main.playCard(card, wall, true)) {
+        if (Board.getInstance().playCard(card, wall, true)) {
             hand.remove(card);
             return true;
         }
@@ -51,8 +51,7 @@ public class Attacker extends Player {
     private void retreat(Scanner scan) {
         int wall = chooseWall(scan);
         if (wall != 0) {
-            Main.retreat(wall);
-            Main.displayBoard();
+            Board.getInstance().retreat(wall);
         }
     }
 }

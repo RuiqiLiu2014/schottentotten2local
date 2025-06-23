@@ -1,8 +1,10 @@
 import java.util.*;
 
 public class Wall {
-    private boolean damaged;
-    private boolean broken;
+    private int status;
+    private final int BROKEN = 2;
+    private final int DAMAGED = 1;
+    private final int INTACT = 0;
     private int length;
     private int damagedLength;
     private String pattern;
@@ -12,10 +14,10 @@ public class Wall {
     private List<Card> defenderCards;
 
     private boolean attackerFinishedFirst;
+    private final int wallNum;
 
-    public Wall(int length, int damagedLength, String pattern, String damagedPattern) {
-        damaged = false;
-        broken = false;
+    public Wall(int length, int damagedLength, String pattern, String damagedPattern, int wallNum) {
+        status = INTACT;
         this.length = length;
         this.damagedLength = damagedLength;
         this.pattern = pattern;
@@ -25,51 +27,42 @@ public class Wall {
         defenderCards = new ArrayList<>();
 
         attackerFinishedFirst = false;
+        this.wallNum = wallNum;
     }
 
     public Set<Card> damage() {
-        if (damaged) {
-            broken = true;
+        if (status == DAMAGED) {
+            status = BROKEN;
             return new TreeSet<>();
         } else {
-            damaged = true;
+            status = DAMAGED;
             Set<Card> toDiscard = new TreeSet<>();
             toDiscard.addAll(attackerCards);
             toDiscard.addAll(defenderCards);
-            length = damagedLength;
-            pattern = damagedPattern;
             attackerCards.clear();
             defenderCards.clear();
+            length = damagedLength;
+            pattern = damagedPattern;
             return toDiscard;
         }
     }
 
     public boolean isDamaged() {
-        return damaged;
+        return status == DAMAGED;
     }
 
     public boolean isBroken() {
-        return broken;
+        return status == BROKEN;
     }
 
     public List<Card> retreat() {
-        List<Card> toDiscard = new ArrayList<>();
-        for (Card card : attackerCards) {
-            if (card != null) {
-                toDiscard.add(card);
-            }
-        }
+        List<Card> toDiscard = List.copyOf(attackerCards);
         attackerCards.clear();
         return toDiscard;
     }
 
     public Card cauldron() {
-        if (attackerCards.size() == length) {
-            attackerFinishedFirst = false;
-        } else if (attackerCards.isEmpty()) {
-            System.out.println("nothing to cauldron");
-            System.out.println("thanks for watering the plants with hot oil i guess");
-            System.out.println("jk have your cauldron back");
+        if (attackerCards.isEmpty()) {
             return null;
         }
         return attackerCards.removeLast();
@@ -92,7 +85,6 @@ public class Wall {
         if (currentFormation.size() == length) {
             return Math.max(getStrength(currentFormation), maxStrength);
         }
-
         for (int i = 0; i < remainingCards.size(); i++) {
             Card card = remainingCards.remove(i);
             currentFormation.add(card);
@@ -100,11 +92,9 @@ public class Wall {
             currentFormation.remove(card);
             remainingCards.add(i, card);
         }
-
         return maxStrength;
     }
 
-    // return 0 if card played, -1 if card not played, 1-5 if 11/0 cancel
     public int playCard(Card card, boolean attacker) {
         List<Card> playingSide;
         List<Card> otherSide;
@@ -131,52 +121,38 @@ public class Wall {
             }
         }
         playingSide.add(card);
-        if (attackerCards.size() == length && !defenderSideFull()) {
-            attackerFinishedFirst = true;
-        }
+        attackerFinishedFirst = attackerCards.size() == length && defenderHasSpace();
         return 0;
     }
 
-    public String toString(int wallNum) {
-        StringBuilder result = new StringBuilder();
-        for (int i = 3; i >= 0; i--) {
+    public void display() {
+        for (int i = Constants.longestWall - 1; i >= 0; i--) {
             if (i >= attackerCards.size()) {
-                result.append("        ");
+                System.out.print(Symbols.cardSpace + " ");
             } else {
-                result.append(attackerCards.get(i).toString()).append(" ");
+                System.out.print(attackerCards.get(i).toString() + " ");
             }
         }
-        if (broken) {
-            result.append("  ").append(wallNum).append("   ");
-        } else if (damaged) {
-            result.append("| ").append(wallNum).append(" | ");
-        } else {
-            result.append("||").append(wallNum).append("|| ");
-        }
-        result.append("  ".repeat(4 - length));
+        System.out.print(Symbols.leftWalls[status] + wallNum + Symbols.rightWalls[status] + " ");
+        System.out.print("  ".repeat(Constants.longestWall - length));
         for (int i = 0; i < length; i++) {
-            result.append("[").append(pattern).append("] ");
+            System.out.print("[" + pattern + "] ");
         }
-        result.append("  ".repeat(4 - length));
-        if (broken) {
-            result.append("  ").append(wallNum).append("  ");
-        } else if (damaged) {
-            result.append("| ").append(wallNum).append(" |");
-        } else {
-            result.append("||").append(wallNum).append("||");
-        }
+        System.out.print("  ".repeat(Constants.longestWall - length));
+        System.out.print(Symbols.leftWalls[status] + wallNum + Symbols.rightWalls[status]);
+
         for (Card card : defenderCards) {
-            result.append(" ").append(card.toString());
+            System.out.print(" " + card.toString());
         }
-        return result.toString();
+        System.out.println();
     }
 
     public boolean contains(Card card) {
         return attackerCards.contains(card) || defenderCards.contains(card);
     }
 
-    public boolean defenderSideFull() {
-        return defenderCards.size() == length;
+    public boolean defenderHasSpace() {
+        return defenderCards.size() < length;
     }
 
     private int getStrength(List<Card> formation) {
@@ -187,21 +163,21 @@ public class Wall {
         int type = getPatternType(formation);
 
         switch (pattern) {
-            case Constants.PLUS -> {
+            case Symbols.PLUS -> {
                 return sum;
             }
-            case Constants.MINUS -> {
+            case Symbols.MINUS -> {
                 return -sum;
             }
-            case Constants.COLOR -> {
-                if (type == 4 || type == 2) {
+            case Symbols.COLOR -> {
+                if (type == 3 || type == 1) {
                     return sum;
                 } else {
                     return type * 100 + sum;
                 }
             }
-            case Constants.RUN -> {
-                if (type == 4 || type == 3) {
+            case Symbols.RUN -> {
+                if (type == 3 || type == 2) {
                     return sum;
                 } else {
                     return type * 100 + sum;
@@ -213,8 +189,7 @@ public class Wall {
         }
     }
 
-    // 5 - color run, 4 - same strength, 3 - color, 2 - run, 1 - sum
-    private static int getPatternType(List<Card> formation) {
+    private int getPatternType(List<Card> formation) {
         Set<String> colors = new TreeSet<>();
         List<Integer> values = new ArrayList<>();
         for (Card card : formation) {
@@ -232,7 +207,7 @@ public class Wall {
             }
         }
         if (allSame) {
-            return 4;
+            return 3;
         }
 
         Set<Integer> diffs = new TreeSet<>();
@@ -242,16 +217,16 @@ public class Wall {
 
         if (colors.size() == 1) {
             if (diffs.size() == 1 && diffs.contains(1)) {
-                return 5;
+                return 4;
             } else {
-                return 3;
+                return 2;
             }
         } else {
             if (diffs.size() == 1 && diffs.contains(1)) {
-                return 2;
+                return 1;
             }
         }
 
-        return 1;
+        return 0;
     }
 }

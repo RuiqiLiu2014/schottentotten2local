@@ -14,7 +14,6 @@ public abstract class Player {
             displayHand();
             played = playCard();
         }
-        draw();
     }
 
     protected int chooseWall(Scanner scan) {
@@ -52,7 +51,10 @@ public abstract class Player {
     }
 
     public void draw() {
-        hand.add(Deck.getInstance().pop());
+        Card card = Deck.getInstance().pop();
+        if (card != null) {
+            hand.add(card);
+        }
     }
 
     public abstract boolean playCard();

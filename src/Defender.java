@@ -1,10 +1,11 @@
 import java.util.Scanner;
 
 public class Defender extends Player {
-    private boolean usedCauldron = false;
+    private boolean usedCauldron;
 
     public Defender() {
         super();
+        usedCauldron = false;
     }
 
     public boolean playCard() {
@@ -19,7 +20,7 @@ public class Defender extends Player {
             return false;
         }
 
-        if (Main.playCard(card, wall, false)) {
+        if (Board.getInstance().playCard(card, wall, false)) {
             hand.remove(card);
             return true;
         }
@@ -27,7 +28,7 @@ public class Defender extends Player {
     }
 
     private Card chooseCard(Scanner scan) {
-        if (Main.cauldronCount > 0 && !usedCauldron) {
+        if (Board.getInstance().getCauldronCount() > 0 && !usedCauldron) {
             System.out.print("Which card (c for cauldron)? ");
         } else {
             System.out.print("Which card? ");
@@ -60,19 +61,20 @@ public class Defender extends Player {
     }
 
     private void cauldron(Scanner scan) {
-        if (Main.cauldronCount > 0) {
+        if (Board.getInstance().getCauldronCount() > 0) {
             int wall = chooseWall(scan);
             if (wall != 0) {
-                Main.cauldron(wall, this);
-                Main.displayBoard();
+                if (Board.getInstance().cauldron(wall)) {
+                    usedCauldron = true;
+                } else {
+                    System.out.println("nothing to cauldron");
+                    System.out.println("thanks for watering the plants with hot oil i guess");
+                    System.out.println("jk have your cauldron back");
+                }
             }
         } else {
             System.out.println("you have no more cauldrons");
             System.out.println("cry about it");
         }
-    }
-
-    public void usedCauldron() {
-        usedCauldron = true;
     }
 }

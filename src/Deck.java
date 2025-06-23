@@ -6,11 +6,7 @@ public class Deck {
 
     private Deck() {
         deck = new Stack<>();
-        for (String color : Constants.colors) {
-            for (int n : Constants.values) {
-                deck.push(new Card(color, n));
-            }
-        }
+        deck.addAll(Constants.allCards());
     }
 
     public static Deck getInstance() {
@@ -33,6 +29,10 @@ public class Deck {
     }
 
     public Card pop() {
+        if (deck.isEmpty()) {
+            System.out.println("deck is empty");
+            return null;
+        }
         return deck.pop();
     }
 }

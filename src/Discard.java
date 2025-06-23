@@ -35,6 +35,8 @@ public class Discard {
                 System.out.println();
             }
         }
-        System.out.println(list.getLast());
+        if (!list.isEmpty()) {
+            System.out.println(list.getLast());
+        }
     }
 }

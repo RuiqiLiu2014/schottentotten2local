@@ -1,24 +1,22 @@
-import java.util.Arrays;
-
 public class Card implements Comparable<Card> {
     private final int value;
     private final String color;
 
     public Card(String color, int value) {
         this.value = value;
-        this.color = color;
+        this.color = Constants.convert(color);
     }
 
     public Card(String name) {
-        this.color = name.substring(0, 5);
-        this.value = Integer.parseInt(name.substring(5));
+        this.color = Constants.convert(name.substring(0, name.length() - 2));
+        this.value = Integer.parseInt(name.substring(name.length() - 2));
     }
 
     public String toString() {
         if (value <= 9) {
-            return color + "0" + value;
+            return Symbols.colorEmoji(color) + "0" + value;
         } else {
-            return color + value;
+            return Symbols.colorEmoji(color) + value;
         }
     }
 
@@ -48,12 +46,13 @@ public class Card implements Comparable<Card> {
     }
 
     public static boolean isValid(String name) {
-        if (name.length() != 7) {
+        if (name.length() <= 2) {
             return false;
         }
-        if (!Constants.colors.contains(name.substring(0, 5))) {
+        if (!Constants.colors.contains(Constants.convert(name.substring(0, name.length() - 2)))) {
             return false;
         }
-        return Integer.parseInt(name.substring(5)) <= 11 && Integer.parseInt(name.substring(5)) >= 0;
+        int value = Integer.parseInt(name.substring(name.length() - 2));
+        return value <= 11 && value >= 0;
     }
 }
