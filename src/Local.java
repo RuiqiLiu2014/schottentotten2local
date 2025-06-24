@@ -1,4 +1,4 @@
-public class Main {
+public class Local {
     // delay between displaying hands
     private static final int delay = 3000;
 
