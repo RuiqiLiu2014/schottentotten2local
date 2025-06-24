@@ -13,10 +13,19 @@ public class Card implements Comparable<Card> {
     }
 
     public String toString() {
-        if (value <= 9) {
-            return Symbols.colorEmoji(color) + "0" + value;
+        int index = Constants.colorIndex(color);
+        if (Local.useEmojis) {
+            if (value <= 9) {
+                return Constants.emojis.get(index) + "0" + value;
+            } else {
+                return Constants.emojis.get(index) + value;
+            }
         } else {
-            return Symbols.colorEmoji(color) + value;
+            if (value <= 9) {
+                return Constants.fruits.get(index) + "0" + value;
+            } else {
+                return Constants.fruits.get(index) + value;
+            }
         }
     }
 
@@ -49,7 +58,8 @@ public class Card implements Comparable<Card> {
         if (name.length() <= 2) {
             return false;
         }
-        if (!Constants.colors.contains(Constants.convert(name.substring(0, name.length() - 2)))) {
+        int index = Constants.colorIndex(name.substring(0, name.length() - 2));
+        if (index == -1) {
             return false;
         }
         int value = Integer.parseInt(name.substring(name.length() - 2));

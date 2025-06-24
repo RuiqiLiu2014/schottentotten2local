@@ -1,12 +1,13 @@
 public class Local {
-    // delay between displaying hands
-    private static final int delay = 3000;
+    private static final int delay = 0; // delay between displaying hands
+    public static final boolean useEmojis = true; // change to false if emojis don't load
 
     public static void main(String[] args) {
         Board board = Board.getInstance();
         Player attacker = new Attacker();
         Player defender = new Defender();
         board.setup(attacker, defender);
+        displayInstructions();
 
         while (true) {
             board.display();
@@ -45,5 +46,16 @@ public class Local {
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
         }
+    }
+
+    private static void displayInstructions() {
+        if (Local.useEmojis) {
+            System.out.println("When playing a card, type either the name, color, or copy paste emoji of the suit followed by the number (no space).");
+        } else {
+            System.out.println("When playing a card, type it exactly as it is displayed by the game.");
+        }
+        System.out.println("Single digit numbers must have a 0 in front of them");
+        System.out.println("Suits: heart, diamond, star, clover, flower");
+        System.out.println("Colors: red, blue, yellow, green, pink");
     }
 }

@@ -126,20 +126,20 @@ public class Wall {
     }
 
     public void display() {
-        for (int i = Constants.longestWall - 1; i >= 0; i--) {
+        for (int i = Constants.longestWall() - 1; i >= 0; i--) {
             if (i >= attackerCards.size()) {
-                System.out.print(Symbols.cardSpace + " ");
+                System.out.print(Constants.cardSpace() + " ");
             } else {
                 System.out.print(attackerCards.get(i).toString() + " ");
             }
         }
-        System.out.print(Symbols.leftWalls[status] + wallNum + Symbols.rightWalls[status] + " ");
-        System.out.print("  ".repeat(Constants.longestWall - length));
+        System.out.print(Constants.leftWalls[status] + wallNum + Constants.rightWalls[status] + " ");
+        System.out.print("  ".repeat(Constants.longestWall() - length));
         for (int i = 0; i < length; i++) {
             System.out.print("[" + pattern + "] ");
         }
-        System.out.print("  ".repeat(Constants.longestWall - length));
-        System.out.print(Symbols.leftWalls[status] + wallNum + Symbols.rightWalls[status]);
+        System.out.print("  ".repeat(Constants.longestWall() - length));
+        System.out.print(Constants.leftWalls[status] + wallNum + Constants.rightWalls[status]);
 
         for (Card card : defenderCards) {
             System.out.print(" " + card.toString());
@@ -163,20 +163,20 @@ public class Wall {
         int type = getPatternType(formation);
 
         switch (pattern) {
-            case Symbols.PLUS -> {
+            case Constants.PLUS -> {
                 return sum;
             }
-            case Symbols.MINUS -> {
+            case Constants.MINUS -> {
                 return -sum;
             }
-            case Symbols.COLOR -> {
+            case Constants.COLOR -> {
                 if (type == 3 || type == 1) {
                     return sum;
                 } else {
                     return type * 100 + sum;
                 }
             }
-            case Symbols.RUN -> {
+            case Constants.RUN -> {
                 if (type == 3 || type == 2) {
                     return sum;
                 } else {

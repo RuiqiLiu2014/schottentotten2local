@@ -26,13 +26,16 @@ public class Board {
     }
 
     public void display() {
-        System.out.print("       ATTACKER               DECK:");
+        System.out.print((Constants.cardSpace() + " ").repeat(Constants.longestWall()).substring(8));
+        System.out.print("ATTACKER" + " ".repeat(Constants.leftWalls[0].length()));
+        System.out.print(" ".repeat(Constants.longestWall() * 2) + "DECK:");
         if (deck.size() < 10) {
             System.out.print("0");
         }
-        System.out.print(deck.size() + "                DEFENDER ");
+        System.out.print(deck.size() + " ".repeat(Constants.longestWall() * 2));
+        System.out.print(" ".repeat(Constants.rightWalls[0].length()) + "DEFENDER ");
         for (int i = 0; i < cauldronCount; i++) {
-            System.out.print(Symbols.CAULDRON);
+            System.out.print(Constants.CAULDRON);
         }
         System.out.println();
         for (Wall wall : board) {
