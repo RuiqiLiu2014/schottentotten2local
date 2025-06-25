@@ -27,6 +27,7 @@ public class Local {
             delay();
             defender.takeTurn();
             defender.draw();
+            board.declareControl();
         }
     }
 
