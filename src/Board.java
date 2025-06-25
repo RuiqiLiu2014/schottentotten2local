@@ -41,9 +41,18 @@ public class Board {
             wall.display();
         }
 
-        System.out.println("------------------------------DISCARD------------------------------");
+        System.out.print("-".repeat((Constants.cardSpace().length() + 1) * Constants.longestWall()));
+        System.out.print("-".repeat(Constants.leftWalls[0].length() + Constants.longestWall() * 2));
+        System.out.print("DISCARD");
+        System.out.print("-".repeat((Constants.cardSpace().length() + 1) * Constants.longestWall()));
+        System.out.print("-".repeat(Constants.rightWalls[0].length() + Constants.longestWall() * 2));
         discard.display();
-        System.out.println("-------------------------------------------------------------------");
+        System.out.println();
+        System.out.print("-".repeat((Constants.cardSpace().length() + 1) * Constants.longestWall()));
+        System.out.print("-".repeat(Constants.leftWalls[0].length() + Constants.longestWall() * 2));
+        System.out.print("-------");
+        System.out.print("-".repeat((Constants.cardSpace().length() + 1) * Constants.longestWall()));
+        System.out.println("-".repeat(Constants.rightWalls[0].length() + Constants.longestWall() * 2));
     }
 
     public void setup(Player attacker, Player defender) {

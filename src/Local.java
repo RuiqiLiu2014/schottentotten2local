@@ -1,6 +1,6 @@
 public class Local {
     private static final int delay = 0; // delay between displaying hands
-    public static final boolean useEmojis = true; // change to false if emojis don't load
+    public static final boolean useEmojis = false; // change to false if emojis don't load
 
     public static void main(String[] args) {
         Board board = Board.getInstance();
