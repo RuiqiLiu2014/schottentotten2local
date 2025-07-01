@@ -6,12 +6,12 @@ public class Wall {
     private final int DAMAGED = 1;
     private final int INTACT = 0;
     private int length;
-    private int damagedLength;
+    private final int damagedLength;
     private String pattern;
-    private String damagedPattern;
+    private final String damagedPattern;
 
-    private List<Card> attackerCards;
-    private List<Card> defenderCards;
+    private final List<Card> attackerCards;
+    private final List<Card> defenderCards;
 
     private boolean attackerFinishedFirst;
     private final int wallNum;
@@ -178,6 +178,13 @@ public class Wall {
             }
             case Constants.RUN -> {
                 if (type == 3 || type == 2) {
+                    return sum;
+                } else {
+                    return type * 100 + sum;
+                }
+            }
+            case Constants.EQUALS -> {
+                if (type == 4 || type == 2 || type == 1) {
                     return sum;
                 } else {
                     return type * 100 + sum;
